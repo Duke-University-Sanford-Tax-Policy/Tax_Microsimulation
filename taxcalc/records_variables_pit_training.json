@@ -80,6 +80,13 @@
         "2018": "pit_training"
       }
     },
+    "capital_income_behavior": {
+      "type": "float",
+      "desc": "PIT for Capital Income", 
+      "form": {
+        "2018": "pit_training"
+      }
+    },    
     "pitax_w": {
       "type": "float",
       "desc": "PIT for Wage Income",
@@ -87,6 +94,13 @@
         "2018": "pit_training"
       }
     },
+    "income_wage_behavior": {
+      "type": "float",
+      "desc": "PIT for Wage Income",
+      "form": {
+        "2018": "pit_training"
+      }
+    },    
     "pitax": {
       "type": "float",
       "desc": "PIT liability",

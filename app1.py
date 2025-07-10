@@ -39,7 +39,7 @@ vars['cit_weights_filename'] = "cit_cross_wgts1.csv"
 vars['cit_records_variables_filename'] = "corprecords_variables.json"
 
 vars['gdp_filename'] = 'gdp_nominal_training.csv'
-vars["start_year"] = 2022
+vars["start_year"] = 2018
 vars["end_year"] = 2027
 vars["SALARY_VARIABLE"] = "gross_i_w"
 vars['elasticity_filename'] = "elasticity_pit_training.json"
@@ -84,9 +84,22 @@ calc1 = Calculator(policy=pol, records=recs, verbose=False)
 calc1.calc_all()
 
 # specify Calculator object for reform in JSON file
-reform = Calculator.read_json_param_objects('app0_reform.json', None)
+reform = Calculator.read_json_param_objects('app0_reform_vat_indo.json', None)
 pol.implement_reform(reform['policy'])
 calc2 = Calculator(policy=pol, records=recs, verbose=False)
+calc2.calc_all()
+
+# compare aggregate results from two calculators
+weighted_tax1 = calc1.weighted_total_pit('vat')
+weighted_tax2 = calc2.weighted_total_pit('vat')
+total_weights = calc1.total_weight_pit()
+print(f'Tax 1 {weighted_tax1 * 1e-9:,.2f}')
+print(f'Tax 2 {weighted_tax2 * 1e-9:,.2f}')
+print(f'Total weight {total_weights * 1e-6:,.2f}')
+
+calc1.advance_to_year(2022)
+calc2.advance_to_year(2022)
+calc1.calc_all()
 calc2.calc_all()
 
 # compare aggregate results from two calculators
@@ -96,6 +109,7 @@ total_weights = calc1.total_weight_pit()
 print(f'Tax 1 {weighted_tax1 * 1e-9:,.2f}')
 print(f'Tax 2 {weighted_tax2 * 1e-9:,.2f}')
 print(f'Total weight {total_weights * 1e-6:,.2f}')
+
 
 # dump out records
 dump_vars = ['id_n', 'Year', 'income_wage_l', 'income_dividends_c',
@@ -108,3 +122,53 @@ column_order = dumpdf.columns
 
 dumpdf.to_csv('app1-dump.csv', columns=column_order,
               index=False, float_format='%.0f')
+
+
+def calc_gini(values): 
+    n = len(values)
+    sorted_values = np.sort(values)  # Sort values in ascending order
+    cumulative_income = sorted_values.sum()
+    gini_index = ((2 * np.sum((np.arange(1, n + 1) * sorted_values))) / (n * cumulative_income)) - ((n + 1) / n)
+    return gini_index
+
+def plot_lorenz_curve_reform(values_pre, values_post, gini_pre, gini_post, title):
+    """Plot the Lorenz Curve given an array of values and the Gini coefficient."""
+    values_pre = np.sort(values_pre)
+    values_pre = np.append([0], values_pre)  # Start at 0
+    cum_values_pre = np.cumsum(values_pre) / np.sum(values_pre)  # Normalize cumulative values
+    cum_pop_pre = np.linspace(0, 1, len(cum_values_pre))  # Population percentage
+
+    values_post = np.sort(values_post)
+    values_post = np.append([0], values_post)  # Start at 0
+    cum_values_post = np.cumsum(values_post) / np.sum(values_post)  # Normalize cumulative values
+    cum_pop_post = np.linspace(0, 1, len(cum_values_post))  # Population percentage
+    
+    plt.figure(figsize=(8, 6))
+    plt.plot(cum_pop_pre, cum_values_pre, label="Lorenz Curve Pre Reform")
+    plt.plot(cum_pop_post, cum_values_post, label="Lorenz Curve Post Reform")
+    plt.plot([0, 1], [0, 1], linestyle="--", color="gray")  # Perfect equality line
+    plt.fill_between(cum_pop_pre, cum_values_pre, cum_values_post, color="skyblue", alpha=0.5)
+
+    plt.xlabel("Cumulative Population Share")
+    plt.ylabel("Cumulative Income Share")
+    plt.title(f"{title} {gini_post-gini_pre:.4f}")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Extract relevant field
+values_pre = dumpdf['pitax1'].dropna().values  # Remove NaNs if any
+gini_pre = calc_gini(values_pre)
+print(f'Gini Pre Reform : {gini_pre:.2f}')
+title = 'Gini Pre Reform : '  
+
+# Extract relevant field
+values_post = dumpdf['pitax2'].dropna().values  # Remove NaNs if any
+gini_post = calc_gini(values_post)
+print(f'Gini Post Reform : {gini_post:.2f}')
+
+print("Kakwani Index: %0.2f." % (gini_post - gini_pre))
+
+title = 'Kakwani Index : ' 
+# Plot Lorenz Curve
+plot_lorenz_curve_reform(values_pre, values_post, gini_pre, gini_post, title)

@@ -1,8 +1,8 @@
-                  2018   2019   2020   2021   2022   2023   2024   2025   2026   2027
-current_law_All  54.78  60.57  60.28  67.34  71.20  77.12  80.83  86.43  92.05  98.40
-reform_All       54.78  60.57  60.28  67.34  71.20  77.12  80.83  86.43  92.05  98.40
+                      2018   2019   2020   2021   2022   2023    2024    2025    2026    2027
+current_law_All      54.78  60.57  60.28  67.34  71.20  77.12   80.83   86.43   92.05   98.40
+reform_All           54.78  60.57  60.28  67.34  90.01  98.29  103.51  111.38  119.33  128.34
+reform_behavior_All  54.78  60.57  60.28  67.34  85.41  93.26   98.19  105.65  113.15  121.66
 
-Empty DataFrame
-Columns: [policy]
-Index: []
+                                                                                                                                                                                                                                                                                               policy
+2022  {'_rate2': [0.3], '_elasticity_pit_taxable_income_value': [[0.4, 0.4, 0.4]], '_elasticity_pit_taxable_income_threshold': [[100000.0, 1000000.0, 9e+99]], '_elasticity_pit_capital_income_value': [[0.0, 0.0, 0.0]], '_elasticity_pit_capital_income_threshold': [[100000.0, 1000000.0, 9e+99]]}
 

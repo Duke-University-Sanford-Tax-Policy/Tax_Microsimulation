@@ -37,11 +37,65 @@ def cal_pit_c(capital_income_rate_a, capital_income, pitax_c):
     return pitax_c
 
 @iterate_jit(nopython=True)
-def cal_pit_w(rate1, rate2, rate3, rate4, tbrk1, tbrk2, tbrk3, tbrk4, tbrk5, income_wage_l, pitax_w):
+def calc_ti_behavior(rate1, rate2, rate3, rate4, tbrk1, 
+                    tbrk2, tbrk3, tbrk4,
+                    rate1_curr_law, rate2_curr_law, rate3_curr_law, 
+                    rate4_curr_law, tbrk1_curr_law, tbrk2_curr_law, 
+                    tbrk3_curr_law, tbrk4_curr_law,
+                    elasticity_pit_taxable_income_threshold,
+                    elasticity_pit_taxable_income_value, income_wage_l,
+                    income_wage_behavior):
+    """
+    Compute taxable total income after adjusting for behavior.
+    """  
+    elasticity_taxable_income_threshold0 = elasticity_pit_taxable_income_threshold[0]
+    elasticity_taxable_income_threshold1 = elasticity_pit_taxable_income_threshold[1]
+    #elasticity_taxable_income_threshold2 = elasticity_pit_taxable_income_threshold[2]
+    elasticity_taxable_income_value0=elasticity_pit_taxable_income_value[0]
+    elasticity_taxable_income_value1=elasticity_pit_taxable_income_value[1]
+    elasticity_taxable_income_value2=elasticity_pit_taxable_income_value[2]
+    if income_wage_l<=0:
+        elasticity=0
+    elif income_wage_l<elasticity_taxable_income_threshold0:
+        elasticity=elasticity_taxable_income_value0
+    elif income_wage_l<elasticity_taxable_income_threshold1:
+        elasticity=elasticity_taxable_income_value1
+    else:
+        elasticity=elasticity_taxable_income_value2
+
+    if income_wage_l<0:
+        marg_rate=0
+    elif income_wage_l<=tbrk2:
+        marg_rate=rate1
+    elif income_wage_l<=tbrk3:
+        marg_rate=rate2
+    elif income_wage_l<=tbrk4:
+        marg_rate=rate3        
+    else:        
+        marg_rate=rate4
+        
+    if income_wage_l<0:
+        marg_rate_curr_law=0
+    elif income_wage_l<=tbrk2_curr_law:
+        marg_rate_curr_law=rate1_curr_law
+    elif income_wage_l<=tbrk3_curr_law:
+        marg_rate_curr_law=rate2_curr_law
+    elif income_wage_l<=tbrk4_curr_law:
+        marg_rate_curr_law=rate3_curr_law      
+    else:
+        marg_rate_curr_law=rate4_curr_law
+    
+    frac_change_net_of_pit_rate = ((1-marg_rate)-(1-marg_rate_curr_law))/(1-marg_rate_curr_law)
+    frac_change_income_wage = elasticity*(frac_change_net_of_pit_rate)  
+    income_wage_behavior = income_wage_l*(1+frac_change_income_wage)
+    return income_wage_behavior
+
+@iterate_jit(nopython=True)
+def cal_pit_w(rate1, rate2, rate3, rate4, tbrk1, tbrk2, tbrk3, tbrk4, tbrk5, income_wage_behavior, pitax_w):
     """
     Compute PIT.
     """
-    inc=income_wage_l
+    inc=income_wage_behavior
     if (inc<tbrk2):
         pitax_w=(inc-tbrk1)*rate1
     elif (inc<tbrk3):

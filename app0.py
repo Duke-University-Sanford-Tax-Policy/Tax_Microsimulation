@@ -74,7 +74,7 @@ f.close()
 from taxcalc import *
 
 # create Records object containing pit.csv and pit_weights.csv input data
-recs = Records()
+recs = Records(data='pit_data_training.csv', weights = 'pit_weights_training.csv')
 
 #policy_filename = "current_law_policy_pit_training"
 # create Policy object containing current-law policy
